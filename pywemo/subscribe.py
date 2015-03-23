@@ -62,6 +62,9 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   def log_message(self, format, *args):
     LOG.info(format, *args)
 
+  def log_request(self, code='-', size='-'):
+    pass
+
 
 class SubscriptionRegistry(object):
   """Class for subscribing to wemo events."""
@@ -99,7 +102,7 @@ class SubscriptionRegistry(object):
       self._event_thread_cond.notify()
 
   def _resubscribe(self, url, sid=None):
-    headers = {'TIMEOUT': 300}
+    headers = {'TIMEOUT': 1800}
     if sid is not None:
       headers['SID'] = sid
     else:
@@ -118,6 +121,7 @@ class SubscriptionRegistry(object):
       return self._resubscribe(url)
     timeout = int(response.headers.get('timeout', '1801').replace(
         'Second-', ''))
+    LOG.info("Subscribed %r, %s", url, response.headers)
     sid = response.headers.get('sid', sid)
 
     with self._event_thread_cond:
